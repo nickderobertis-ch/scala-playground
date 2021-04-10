@@ -1,0 +1,5 @@
+services:
+    scala:
+        build: .
+        volumes:
+            - ./src:/root/src
