@@ -1,5 +1,7 @@
 services:
-    scala:
-        build: .
+    backend:
+        build: myapp
         volumes:
-            - ./src:/root/src
+            - ./myapp:/root/app
+        ports:
+            - 9000:9000
