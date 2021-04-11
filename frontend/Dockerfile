@@ -39,30 +39,6 @@ RUN yes | sdkmanager --update --verbose
 RUN yes | sdkmanager --licenses
 # Done installing Android SDK
 
-# Set up non-root user
-ARG USERNAME=dev
-ARG UID=1000
-RUN adduser --uid $UID --disabled-password --gecos '' $USERNAME
-## Give the user ownership of the SDK installation directory (so it can run
-## SDK commands)
-RUN chown -R $USERNAME:$USERNAME $ANDROID_HOME
-# Allow the Docker user to play audio through the host's pulseaudio
-ENV XDG_RUNTIME_DIR /run/user/$UID
-RUN mkdir -p $XDG_RUNTIME_DIR && chown -R $USERNAME:$USERNAME $XDG_RUNTIME_DIR
-## No need for root from here on out, so switch to the non-root user to avoid
-## complication (eg. having to chown more files due to creating as root, etc.)
-USER $USERNAME
-## `emulator` has a bug where it won't work unless run from a specific
-## directory, so set up a convenience function to run it from anywhere. Can't
-## use eg. `.bashrc` because tini doesn't load it
-ARG USER_BIN_DIR=/home/$USERNAME/.bin
-RUN mkdir $USER_BIN_DIR \
-&& echo '(cd "$ANDROID_HOME"/tools && ./emulator "$@")' \
-  >> $USER_BIN_DIR/emulator \
-&& chmod +x $USER_BIN_DIR/emulator
-ENV PATH $USER_BIN_DIR:$PATH
-# Done setting up non-root user
-
 ENV PROJECT_MOUNT=/project
 WORKDIR $PROJECT_MOUNT
 # Tell gradle to store dependencies in a sub directory of the android project -
@@ -77,7 +53,5 @@ COPY package-lock.json .
 RUN npm install
 
 COPY . .
-
-RUN chown -R $USERNAME $PROJECT_MOUNT
 
 CMD [ "npm", "run", "android" ]
