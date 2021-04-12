@@ -1,1 +1,0 @@
-final case class TODOItem(name: String, description: String, checklist: Array[String] = Array())
